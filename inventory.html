@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #d8ffde;
+        }
+        .header-banner {
+            background-color: #30583c;
+            padding: 15px 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .logo {
+            position: absolute;
+            top: 35px;
+            right: 30px;
+            width: 100px;
+            height: auto;
+        }
+        h1{
+            margin-top: 40px;
+            margin-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        th, td {
+            border: 1px solid #30483582;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+        
+
+        .fresh {
+            background-color: #7bffa9;
+        }
+
+        .caution {
+            background-color: #ffed65;
+        }
+
+        .expiring {
+            background-color: #ffa7a7;
+        }
+
+        .expired {
+            background-color: #333333;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            padding: 30px 35px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            height: auto;
+        }
+
+        .modal-content input,
+        .modal-content button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+        }
+
+        .modal-content button {
+            background-color: #47f174;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-content button:hover {
+            background-color: #0056b3;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #addButton {
+            position: fixed;
+            bottom: 50px;
+            right: 50px;
+            font-size: 1.2em;
+            background: rgb(67, 106, 67);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.521);
+            padding: 10px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            color: #ffffff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #addButton:hover {
+            background-color: rgb(38, 255, 67);
+            color: rgb(67, 106, 67);
+            transform: scale(1.15);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        #suggestions {
+            color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            position: absolute;
+            width: calc(88% - 18px);
+            background-color: rgb(93, 93, 93);
+            z-index: 1;
+            display: none;
+        }
+
+        #suggestions div {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        #suggestions div:hover {
+            background-color: #8a8a8a;
+        }
+        .action-icon1 {
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 0 5px;
+            color: green;
+        }
+        .action-icon2 {
+            font-size: 1.2em;
+            cursor: pointer;
+            margin: 0 5px;
+            color: red;
+        }
+        .search-container {
+            float: right;
+            margin-bottom: 10px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #searchBar {
+            padding: 8px 30px 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            width: 200px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #777;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+    <script src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+    <img src="greenbee.jpg" alt="Logo" class="logo">
+    <div class="header-banner">
+        <button onclick="logout()" style="position: absolute; top: 65px; left: 30px; padding: 10px 20px; font-size: 1.5rem; background-color: transparent; 
+        color: white; border: none; border-radius: 5px; cursor: pointer;"><ion-icon name="log-out-outline"></ion-icon></button>
+        <h2>Green Bee Square Inn</h2>
+    </div>
+    <h1>Inventory</h1>
+
+    <button id="addButton">+ add product</button>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Add New Product</h2>
+            <form id="productForm">
+                <input type="hidden" id="productId" name="productId">
+                <label for="productName">Product Name:</label><br>
+                <input type="text" id="productName" name="productName" oninput="showSuggestions()" required><br>
+                <div id="suggestions"></div>
+
+                <label for="quantity">Quantity:</label><br>
+                <input type="number" id="quantity" name="quantity" required><br>
+
+                <label for="unit">Unit (ml/g):</label><br>
+                <input type="text" id="unit" name="unit" placeholder="ml or g"><br>
+
+                <label for="expirationDate">Expiration Date:</label><br>
+                <input type="date" id="expirationDate" name="expirationDate" required><br>
+
+                <button type="button" onclick="saveProduct()">Done</button>
+            </form>
+        </div>
+    </div>
+    <div class="search-container">
+        <div class="search-wrapper">
+            <input type="text" id="searchBar" placeholder="Search product...">
+            <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        </div>
+    </div>
+    <button onclick="exportToCSV()" style="margin-bottom: 15px; padding: 8px 12px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        <ion-icon name="document-attach-outline"></ion-icon>Export to CSV</button>
+    
+    <table id="inventoryTable">
+        <thead>
+            <tr>
+                <th>Actions</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Unit</th>
+                <th>Expiration Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+
+    <script>
+        const modal = document.getElementById("myModal");
+        const addButton = document.getElementById("addButton");
+        const span = document.getElementsByClassName("close")[0];
+        const tableBody = document.querySelector("#inventoryTable tbody");
+        const productNameInput = document.getElementById("productName");
+        const suggestionsDiv = document.getElementById("suggestions");
+        const modalTitle = document.getElementById("modalTitle");
+        const productIdInput = document.getElementById("productId");
+        let allProducts = [];
+        let editingProductId = null;
+        const searchBar = document.getElementById('searchBar');
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        let originalProductData = null;
+
+        addButton.onclick = () => {
+            modalTitle.textContent = "Add New Product";
+            productIdInput.value = "";
+            document.getElementById("productForm").reset();
+            modal.style.display = "block";
+        };
+        span.onclick = () => {
+             modal.style.display = "none";
+            document.getElementById("productForm").reset();
+            editingProductId = null;
+            originalProductData = null;
+        };
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                // Do nothing if the user clicks outside the modal
+            }
+        };
+
+        function saveProduct() {
+            const productName = productNameInput.value;
+            const quantity = parseInt(document.getElementById("quantity").value);
+            const unit = document.getElementById("unit").value;
+            const expirationDate = document.getElementById("expirationDate").value;
+
+            if (!productName || !quantity || !expirationDate) {
+                alert("Please fill in all required fields.");
+                return;
+            }
+
+            if (editingProductId) {
+                if (
+                    productName === originalProductData.productName &&
+                    quantity === originalProductData.quantity &&
+                    unit === originalProductData.unit &&
+                    expirationDate === originalProductData.expirationDate
+                ) {
+                    alert("No changes were made.");
+                    return;
+                }
+            }
+
+            const action = editingProductId ? "update" : "add";
+            const id = editingProductId;
+
+            fetch("inventory_actions.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `action=${action}&id=${id}&productName=${productName}&quantity=${quantity}&unit=${unit}&expirationDate=${expirationDate}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data === "success") {
+                    fetchProducts();
+                    if(!editingProductId){
+                        document.getElementById("productForm").reset();
+                    }else{
+                        modal.style.display = "none";
+                    }
+                    editingProductId = null;
+                    originalProductData = null;
+
+                } else {
+                    alert("Error: " + data);
+                }
+            });
+        }
+
+        function fetchProducts() {
+            fetch("inventory_actions.php?action=get")
+                .then(response => response.json())
+                .then(products => {
+                    renderTable(products);
+                    allProducts = products.map(product => product.product_name);
+                });
+        }
+
+        function renderTable(products) {
+            tableBody.innerHTML = "";
+            const today = new Date();
+            const searchTerm = searchBar.value.toLowerCase();
+            const filteredProducts = products.filter(product => product.product_name.toLowerCase().includes(searchTerm));
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageProducts = filteredProducts.slice(startIndex, endIndex);
+
+            pageProducts.forEach(product => {
+                const row = document.createElement("tr");
+                const expiration = new Date(product.expiration_date);
+                const timeDiff = expiration.getTime() - today.getTime();
+                const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                let statusClass = "";
+                let statusText = "";
+
+                if (daysDiff < 0) {
+                    statusClass = "expired";
+                    statusText = "Expired";
+                } else if (daysDiff < 7) {
+                    statusClass = "expiring";
+                    statusText = "Expiring soon";
+                } else if (daysDiff < 30) {
+                    statusClass = "caution";
+                    statusText = "Consume with caution";
+                } else {
+                    statusClass = "fresh";
+                    statusText = "Fresh";
+                }
+
+                row.innerHTML = `
+                    <td>
+                        <ion-icon name="create-outline" class="action-icon1" onclick="editProduct(${product.id})"></ion-icon>
+                        <ion-icon name="trash-outline" class="action-icon2" onclick="deleteProduct(${product.id})"></ion-icon>
+                    </td>
+                    <td>${product.product_name}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.unit}</td>
+                    <td>${product.expiration_date}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            renderPagination(filteredProducts.length);
+        }
+
+        function renderPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const paginationDiv = document.getElementById("pagination");
+            paginationDiv.innerHTML = "";
+
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement("button");
+                button.textContent = i;
+                if (i === currentPage) {
+                    button.classList.add("active");
+                }
+                button.onclick = () => {
+                    currentPage = i;
+                    fetchProducts();
+                };
+                paginationDiv.appendChild(button);
+            }
+        }
+
+        function editProduct(id) {
+            fetch("inventory_actions.php?action=get&id=" + id)
+                .then(response => response.json())
+                .then(product => {
+                    modalTitle.textContent = "Edit Product";
+                    productIdInput.value = product[0].id;
+                    productNameInput.value = product[0].product_name;
+                    document.getElementById("quantity").value = product[0].quantity;
+                    document.getElementById("unit").value = product[0].unit;
+                    document.getElementById("expirationDate").value = product[0].expiration_date;
+                    modal.style.display = "block";
+                    editingProductId = id;
+
+                    originalProductData = {
+                        productName: product[0].product_name,
+                        quantity: product[0].quantity,
+                        unit: product[0].unit,
+                        expirationDate: product[0].expiration_date
+                    };
+                });
+        }
+
+        function deleteProduct(id) {
+            if (confirm("Are you sure you want to delete this product?")) {
+                fetch("inventory_actions.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `action=delete&id=${id}`
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data === "success") {
+                        fetchProducts();
+                    } else {
+                        alert("Error deleting product: " + data);
+                    }
+                });
+            }
+        }
+
+        function showSuggestions() {
+            const inputValue = productNameInput.value.toLowerCase();
+            const filteredSuggestions = allProducts.filter(product => product.toLowerCase().includes(inputValue));
+
+            if (inputValue && filteredSuggestions.length > 0) {
+                suggestionsDiv.innerHTML = filteredSuggestions.map(product => `<div onclick="selectSuggestion('${product}')">${product}</div>`).join("");
+                suggestionsDiv.style.display = "block";
+            } else {
+                suggestionsDiv.style.display = "none";
+            }
+        }
+
+        function selectSuggestion(suggestion) {
+            productNameInput.value = suggestion;
+            suggestionsDiv.style.display = "none";
+        }
+
+        function exportToCSV() {
+            const table = document.getElementById("inventoryTable");
+            let csv = [];
+            for (let row of table.rows) {
+                let rowData = [];
+                for (let cell of row.cells) {
+                    rowData.push(`"${cell.innerText.replace(/"/g, '""')}"`);
+                }
+                csv.push(rowData.join(","));
+            }
+            const csvString = csv.join("\n");
+            const blob = new Blob([csvString], { type: "text/csv" });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "inventory.csv";
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function logout() {
+            const confirmLogout = confirm("Are you sure you want to logout?");
+
+            if (confirmLogout) {
+                sessionStorage.clear();
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function () {
+                window.history.pushState(null, null, window.location.href);
+            };
+        }
+
+        searchBar.addEventListener('input', fetchProducts);
+
+        document.getElementById("productForm").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                saveProduct();
+            }
+        });
+
+        fetchProducts();
+    </script>
+</body>
+</html>
